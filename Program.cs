@@ -88,7 +88,8 @@ class Program
         int index1;
         int index2; //für 2.Person
         string buffer ="";
-        
+        string buffer2 = "";
+
         var mitarbeiterMitMuellWert = mitarbeiterList;
 
         for (int i = 0; i <= 2; i++)
@@ -114,13 +115,18 @@ class Program
             {
                 zufall = new Random();
                 // Zwei zufällige Indizes auswählen, die nicht gleich sind
-                while (mitarbeiterList[index2].Name != buffer)
+
+                do
                 {
                     index2 = zufall.Next(0, mitarbeiterList.Count);
+                } while (mitarbeiterList[index2].Name == buffer);
+
+                    // Die beiden Ausgaben aus der Liste anzeigen
+                    Mitarbeiter mull1 = mitarbeiterList[index2];
+                if (string.IsNullOrEmpty(buffer)) {
+                    buffer = mull1.Name;
                 }
-                
-                // Die beiden Ausgaben aus der Liste anzeigen
-                Mitarbeiter mull1 = mitarbeiterList[index2];
+                else { buffer2 = mull1.Name; }
 
 
                 Gemacht(mitarbeiterList[index2], "Müll");
@@ -128,6 +134,38 @@ class Program
                 i++;
             }
 
+        }
+        while (true) {
+            Console.WriteLine("Müll macht " + buffer);
+            Console.WriteLine("Müll macht " + buffer2);
+            Console.WriteLine("Sind beide da?");
+            Console.WriteLine("Bitte geben sie ein 1 für JA oder 2 für Nein");
+            string isDa = Console.ReadLine();
+            if (isDa == "1")
+            {
+                break;
+            }else if (isDa == "2")
+            {
+                while (true)
+                {
+                    Console.WriteLine("Wer fehlt");
+                    Console.WriteLine("Bitte geben sie ein 1 für " + buffer + " oder 2 für " + buffer2);
+                    string werFehlt = Console.ReadLine();
+
+                    if (werFehlt == "1")
+                    {
+                        //NichtDa(); //buffer darf nicht name sein es muss die ganze klasseninstanz sein
+                        break;
+                    }
+                    else if (werFehlt == "2") {
+                        //NichtDa();
+                        break; 
+                    }
+                    else { Console.WriteLine("Vehler versuche es erneut"); }
+                }
+            }
+            else { continue; }
+            
         }
         
         
