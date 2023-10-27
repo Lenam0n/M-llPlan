@@ -7,4 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties mitarbeiter_1json__JsonSchema="https://json.schemastore.org/babelrc.json" /></VisualStudio></ProjectExtensions>
+
 </Project>
