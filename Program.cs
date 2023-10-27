@@ -12,14 +12,29 @@ class Mitarbeiter
     public ArrayList MuellGemacht { get; set; }
     public ArrayList KuecheGemacht { get; set; }
     public ArrayList Krank { get; set; }
+
+
+    public Mitarbeiter DeepCopy()
+    {
+        // Create a new instance and copy values
+        Mitarbeiter copy = new Mitarbeiter { 
+                                            Name = this.Name, 
+                                            Muell = this.Muell, 
+                                            Kueche = this.Kueche, 
+                                            KuecheGemacht = this.KuecheGemacht, 
+                                            MuellGemacht = this.MuellGemacht, 
+                                            Krank = this.Krank };
+        return copy;
+    }
+
 }
 
 class Program
 {
-    //Importer von text/json datei
-    //Exporter von text/json datei
-
-    public static List<Mitarbeiter> mitarbeiterList = new List<Mitarbeiter>
+    public static List<Mitarbeiter> mitarbeiterList;
+    public static List<Mitarbeiter> mitarbeiterList_2;
+    public static List<Mitarbeiter> mitarbeiterList_krank;
+    /*public static List<Mitarbeiter> mitarbeiterList = new List<Mitarbeiter>
         {
             new Mitarbeiter
             {
@@ -58,14 +73,27 @@ class Program
                 Krank = new ArrayList()
             },
             // Füge hier die anderen Mitarbeiter hinzu
-        };
+        };*/
 
     static void Main()
     {
-        Mitarbeiter m_buff = null;
-        Mitarbeiter m_buff2 = null;
-        AuswahlScript(m_buff, m_buff2,"Müll");
-        AuswahlScript(m_buff, m_buff2, "Küche");
+        mitarbeiterList = JsonImporter();
+        mitarbeiterList_2 = mitarbeiterList;                 // mitarbeiterList_2.DeepCopy(mitarbeiterList);
+        mitarbeiterList_krank = new List<Mitarbeiter>();
+
+        Mitarbeiter m_buff = new Mitarbeiter();
+        Mitarbeiter m_buff2 = new Mitarbeiter();
+
+        Mitarbeiter k_buff = new Mitarbeiter();
+        Mitarbeiter k_buff2 = new Mitarbeiter();
+
+        m_buff = AuswahlScript(m_buff, m_buff2, "Müll");
+        m_buff2 = AuswahlScript(m_buff, m_buff2, "Müll");
+        check(m_buff, m_buff2, "Müll");
+
+        k_buff = AuswahlScript(m_buff, m_buff2, "Küche");
+        k_buff2 = AuswahlScript(m_buff, m_buff2, "Küche");
+        check(k_buff, k_buff2, "Küche");
 
         JsonExporter(mitarbeiterList);
 
@@ -73,73 +101,95 @@ class Program
 
     }
 
-    static Array AuswahlScript(Mitarbeiter m_buff,Mitarbeiter m_buff2,string type)
+    static Mitarbeiter AuswahlScript(Mitarbeiter m_buff, Mitarbeiter m_buff2, string type)
     {
         Random zufall;
         int index1;
         int index2; //für 2.Person
 
-        var mitarbeiterMitlWert = mitarbeiterList;
+        var mitarbeiterMitlWert = mitarbeiterList_2;
 
-        for (int i = 0; i < 2; i++)
+        switch (type)
         {
-            switch (type)
-            {
-                case "Müll":
-                    mitarbeiterMitlWert = mitarbeiterList.Where(m => m.Muell > 0).ToList();
-                    break;
-                case "Küche":
-                    mitarbeiterMitlWert = mitarbeiterList.Where(m => m.Kueche > 0).ToList();
-                    break;
-            }
-            
-            if (mitarbeiterMitlWert.Any())
-            {
-                zufall = new Random();
-
-                // Zwei zufällige Indizes auswählen, die nicht gleich sind
-                index1 = zufall.Next(0, mitarbeiterMitlWert.Count);
-                // Die beiden Ausgaben aus der Liste anzeigen
-                Mitarbeiter mull1 = mitarbeiterMitlWert[index1];
-
-
-                Gemacht(mitarbeiterMitlWert[index1], type);
-                m_buff = mull1;
-
-            }
-            else
-            {
-                zufall = new Random();
-                // Zwei zufällige Indizes auswählen, die nicht gleich sind
-
-                do
-                {
-                    index2 = zufall.Next(0, mitarbeiterList.Count);
-                } while (m_buff != null && mitarbeiterList[index2].Name == m_buff.Name);
-
-                // Die beiden Ausgaben aus der Liste anzeigen
-                Mitarbeiter mull1 = mitarbeiterList[index2];
-                if (m_buff == null)
-                {
-                    m_buff = mull1;
-                }
-                else { m_buff2 = mull1; }
-
-
-                Gemacht(mitarbeiterList[index2], type);
-
-            }
-
+            case "Müll":
+                mitarbeiterMitlWert = mitarbeiterList_2.Where(m => m.Muell > 0 
+                                                                && m_buff != null 
+                                                                && m_buff2 != null 
+                                                                && m.Name != m_buff.Name 
+                                                                && m.Name != m_buff2.Name).ToList();
+                break;
+            case "Küche":
+                mitarbeiterMitlWert = mitarbeiterList_2.Where(m => m.Kueche > 0
+                                                                && m_buff != null
+                                                                && m_buff2 != null
+                                                                && m.Name != m_buff.Name 
+                                                                && m.Name != m_buff2.Name).ToList();
+                break;
         }
+
+        if (mitarbeiterMitlWert.Any())
+        {
+            zufall = new Random();
+
+            // Zwei zufällige Indizes auswählen, die nicht gleich sind
+            do
+            {
+                index1 = zufall.Next(0, mitarbeiterMitlWert.Count);
+                if (mitarbeiterMitlWert.Count == 0 && mitarbeiterList_2.Count == 0 || mitarbeiterList_krank.Count >= (mitarbeiterList.Count - 1))
+                {
+                    Console.WriteLine("zuwenige zum Arbeit verteilen"); Environment.Exit(0); 
+                }
+                
+            } while (mitarbeiterMitlWert[index1].Name == m_buff.Name
+                    || mitarbeiterMitlWert[index1].Name == m_buff2.Name);
+
+            // Die beiden Ausgaben aus der Liste anzeigen
+            Mitarbeiter mull1 = mitarbeiterMitlWert[index1];
+
+
+            
+            m_buff = mull1;
+            return m_buff;
+        }
+        else
+        {
+            zufall = new Random();
+            // Zwei zufällige Indizes auswählen, die nicht gleich sind
+
+            do
+            {
+
+                index1 = zufall.Next(0, mitarbeiterList_2.Count);
+                if (mitarbeiterList_2.Count == 0 || mitarbeiterList_krank.Count > (mitarbeiterList.Count - 1)) 
+                { 
+                    Console.WriteLine("zuwenige zum Arbeit verteilen"); Environment.Exit(0); 
+                }
+                
+            } while (mitarbeiterList_2[index1].Name == m_buff.Name
+                    || mitarbeiterList_2[index1].Name == m_buff2.Name);
+
+            // Die beiden Ausgaben aus der Liste anzeigen
+            Mitarbeiter mull1 = mitarbeiterList_2[index1];
+            m_buff = mull1;
+
+            return m_buff;
+        }
+    }
+
+
+    static Array check(Mitarbeiter m_buff, Mitarbeiter m_buff2, string type)
+    {
         while (true)
         {
-            Console.WriteLine(type +" macht " + m_buff.Name);
+            Console.WriteLine(type + " macht " + m_buff.Name);
             Console.WriteLine(type + " macht " + m_buff2.Name);
             Console.WriteLine("Sind beide da?");
             Console.WriteLine("Bitte geben sie ein 1 für JA oder 2 für Nein");
             string isDa = Console.ReadLine();
             if (isDa == "1")
             {
+                Gemacht(m_buff, type);
+                Gemacht(m_buff2, type);
                 return new Mitarbeiter[] { m_buff, m_buff2 };
             }
             else if (isDa == "2")
@@ -153,29 +203,31 @@ class Program
                     if (werFehlt == "1")
                     {
                         NichtDa(m_buff, type);
-                        Console.WriteLine(m_buff.Muell);
+                        mitarbeiterList_krank.Add(m_buff);
+                        mitarbeiterList_2.Remove(m_buff);
+                        m_buff = AuswahlScript(m_buff, m_buff2, type);
                         break;
                     }
                     else if (werFehlt == "2")
                     {
                         NichtDa(m_buff2, type);
-                        Console.WriteLine(m_buff2.Muell);
+                        mitarbeiterList_krank.Add(m_buff);
+                        mitarbeiterList_2.Remove(m_buff2);
+                        m_buff2 = AuswahlScript(m_buff, m_buff2,  type);
                         break;
                     }
                     else { Console.WriteLine("Fehler versuche es erneut"); }
                 }
-                return new Mitarbeiter[] { m_buff, m_buff2 };
-
 
             }
-            else { continue; }
-
+            
         }
     }
 
-    static void NichtDa(Mitarbeiter m,string e)
+    static void NichtDa(Mitarbeiter m, string e)
     {
-        switch (e) {
+        switch (e)
+        {
             case "Küche":
                 m.Kueche += 1;
                 m.Krank.Add(DateTime.Now);
@@ -184,7 +236,7 @@ class Program
                 m.Muell += 1;
                 m.Krank.Add(DateTime.Now);
                 break;
-        } 
+        }
     }
     static void Gemacht(Mitarbeiter m, string e)
     {
@@ -202,10 +254,6 @@ class Program
     }
     static void JsonExporter(List<Mitarbeiter> l_m)
     {
-       /*foreach (var m in l_m)
-        {
-            
-        }*/
 
         // Daten in JSON serialisieren
         string json = JsonSerializer.Serialize(l_m);
@@ -213,7 +261,6 @@ class Program
         // JSON in eine Datei schreiben
         File.WriteAllText("mitarbeiter.json", json);
 
-        //Console.WriteLine(json);
         Console.WriteLine("JSON exportiert.");
     }
     static List<Mitarbeiter> JsonImporter()
@@ -224,11 +271,12 @@ class Program
         // JSON in ein Mitarbeiter-Objekt deserialisieren
         List<Mitarbeiter> mitarbeiterListe = JsonSerializer.Deserialize<List<Mitarbeiter>>(json);
 
-        foreach (var item in mitarbeiterListe)
+       /* foreach (var item in mitarbeiterListe)
         {
-            Console.WriteLine($"{item}");
-        }
+            Console.WriteLine($"{item.Name}");
+        }*/
 
         return mitarbeiterListe;
     }
+
 }
